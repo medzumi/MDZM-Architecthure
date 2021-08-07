@@ -2,6 +2,7 @@
   "name": "com.mdzm.architecture",
   "version": "1.0.0",
   "dependencies": {
-    "com.sschmid.entitas" : "1.13.0"
+    "com.sschmid.entitas" : "1.13.0",
+    "com.cysharp.unitask": "1.0.0"
   }
 }
