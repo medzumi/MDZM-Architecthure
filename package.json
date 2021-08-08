@@ -2,7 +2,9 @@
   "name": "com.mdzm.architecture",
   "version": "1.0.0",
   "dependencies": {
-    "com.sschmid.entitas" : "1.13.0",
-    "com.cysharp.unitask": "1.0.0"
+    "com.cysharp.unitask": "1.0.0",
+    "com.svermeulen.extenject" : "1.0.0",
+    "com.solidalloy.util" : "1.0.0",
+    "com.solidalloy.type-references" : "1.0.0"
   }
 }
