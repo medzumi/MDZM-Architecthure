@@ -1,16 +1,11 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace Architecture.Presenting
 {
     public abstract class AbstractPresenter<TKey>
     {
-        private readonly AbstractPresenter<TKey>[] _presenters;
         private readonly Dictionary<TKey, object> _dictionary = new Dictionary<TKey, object>();
-
-        protected AbstractPresenter(AbstractPresenter<TKey>[] presenters)
-        {
-            _presenters = presenters;
-        }
 
         public virtual void Present(object model, TKey key)
         {
@@ -24,47 +19,17 @@ namespace Architecture.Presenting
             _dictionary.Remove(key);
         }
 
-        public void Activate()
-        {
-            InternalActivate();
-            ActivateHandler();
-        }
-
-        public void Deactivate()
-        {
-            DeactivateHandler();
-            InternalDeactivate();
-        }
-
-        protected abstract void ActivateHandler();
-
-        protected abstract void DeactivateHandler();
-
-        protected abstract void PresentHandler(object model, TKey key);
-
         protected abstract void StopPresentHandler(object model, TKey key);
 
-        protected internal virtual void InternalActivate()
-        {
-            foreach (var presenter in _presenters)
-            {
-                presenter.Activate();
-            }
-        }
+        protected abstract void PresentHandler(object mode, TKey key);
 
-        protected internal virtual void InternalDeactivate()
-        {
-            foreach (var presenter in _presenters)
-            {
-                presenter.Deactivate();
-            }
-        }
+        public abstract void Activate();
+
+        public abstract void Deactivate();
     }
     
     public abstract class AbstractPresenter<T, TKey> : AbstractPresenter<TKey>
     {
-        private readonly AbstractPresenter<T, TKey>[] _presenters;
-
         private readonly Dictionary<TKey, T> _dictionary = new Dictionary<TKey, T>();
 
         public sealed override void Present(object model, TKey key)
@@ -87,31 +52,18 @@ namespace Architecture.Presenting
             PresentHandler(model, key);
         }
 
-        protected internal override void InternalActivate()
+        protected sealed override void PresentHandler(object mode, TKey key)
         {
-            base.InternalActivate();
-            foreach (var keyValuePair in _dictionary)
-            {
-                PresentHandler(keyValuePair.Value, keyValuePair.Key);
-            }
+            
         }
 
-        protected internal override void InternalDeactivate()
+        protected sealed override void StopPresentHandler(object model, TKey key)
         {
-            base.InternalDeactivate();
-            foreach (var keyValuePair in _dictionary)
-            {
-                StopPresentHandler(keyValuePair.Value, keyValuePair.Key);
-            }
+            
         }
 
         protected abstract void PresentHandler(T model, TKey key);
 
         protected abstract void StopPresentHandler(T model, TKey key);
-
-        protected AbstractPresenter(AbstractPresenter<TKey>[] presenters, AbstractPresenter<T, TKey>[] presenters1) : base(presenters)
-        {
-            _presenters = presenters1;
-        }
     }
 }
