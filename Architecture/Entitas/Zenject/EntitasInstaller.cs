@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Architecture.TypeProperty;
 using Entitas;
-using TypeReferences;
 using UnityEngine;
 using Zenject;
 
@@ -10,18 +10,18 @@ namespace Architecture.Entitas.Zenject
 {
     public class EntitasInstaller : MonoInstaller
     {
-        [SerializeField] [Inherits(typeof(Systems), UseBuiltInNames = true, IncludeAdditionalAssemblies = new []{"Assembly-CSharp"})]
+        [SerializeField] [Inherits(typeof(Systems))]
         private TypeReference _systemsType;
 
         [SerializeField]
-        [Inherits(typeof(IContexts), UseBuiltInNames = true, IncludeAdditionalAssemblies = new[] {"Assembly-CSharp"})]
+        [Inherits(typeof(IContexts))]
         private TypeReference _contextstype;
         
         [SerializeField]
-        [Inherits(typeof(IContext), UseBuiltInNames = true, IncludeAdditionalAssemblies = new[] {"Assembly-CSharp"})]
+        [Inherits(typeof(IContext))]
         private TypeReference[] _contextTypes;
 
-        [SerializeField] [Inherits(typeof(ISystem), AllowInternal = true, UseBuiltInNames = true, IncludeAdditionalAssemblies = new []{"Assembly-CSharp"})]
+        [SerializeField] [Inherits(typeof(ISystem))]
         private List<TypeReference> _systemTypes;
 
         private Systems _systems;

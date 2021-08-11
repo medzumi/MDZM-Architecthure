@@ -5,52 +5,50 @@ using Entitas;
 namespace Architecture.Entitas.Presenting
 {
     //Oh shit : 4 arg generic O_O
-    public class PresentingComponentSystem<TComponent, TIdComponent, TKey, TEntity> : ReactiveSystem<TEntity>
+    public class PresentingComponentSystem<TListenerComponent ,TComponent, TIdComponent, TKey, TEntity> : IReactiveSystem, IExecuteSystem
         where TComponent : IComponent
         where TIdComponent : IComponent, IIdentifierComponent<TKey>
         where TEntity : Entity
+        where TListenerComponent : IComponent
     {
-        private static readonly int _componentId = GenericComponentsLookup<TEntity>.GetComponentId<TComponent>();
+        private readonly StartPresentComponentSystem<TListenerComponent, TComponent, TIdComponent, TKey, TEntity>
+            _startPresentComponentSystem;
 
-        private static readonly int _identifierComponentId =
-            GenericComponentsLookup<TEntity>.GetComponentId<TIdComponent>();
-
-        private readonly AbstractPresenter<TComponent, TKey> _presenter;
+        private readonly StopPresentComponentSystem<TListenerComponent, TComponent, TIdComponent, TKey, TEntity>
+            _stopPresentComponentSystem;
         
-        public PresentingComponentSystem(IContext<TEntity> context, AbstractPresenter<TComponent, TKey> presenter) : base(context)
+        public PresentingComponentSystem(AbstractPresenter<TEntity, TKey> presenter, IContext<TEntity> context)
         {
-            _presenter = presenter;
+            _startPresentComponentSystem =
+                new StartPresentComponentSystem<TListenerComponent, TComponent, TIdComponent, TKey, TEntity>(context,
+                    presenter);
+            _stopPresentComponentSystem =
+                new StopPresentComponentSystem<TListenerComponent, TComponent, TIdComponent, TKey, TEntity>(context,
+                    presenter);
+        }
+        
+        public void Execute()
+        {
+            _startPresentComponentSystem.Execute();
+            _stopPresentComponentSystem.Execute();
         }
 
-        public PresentingComponentSystem(ICollector<TEntity> collector, AbstractPresenter<TComponent, TKey> presenter) : base(collector)
+        public void Activate()
         {
-            _presenter = presenter;
+            _startPresentComponentSystem.Activate();
+            _stopPresentComponentSystem.Activate();
         }
 
-        protected override ICollector<TEntity> GetTrigger(IContext<TEntity> context)
+        public void Deactivate()
         {
-            return context.CreateCollector(
-                Matcher<TEntity>.AnyOf(_componentId, _identifierComponentId).AddedOrRemoved());
+            _startPresentComponentSystem.Deactivate();
+            _stopPresentComponentSystem.Deactivate();
         }
 
-        protected override bool Filter(TEntity entity)
+        public void Clear()
         {
-            return entity.HasComponent(_identifierComponentId);
-        }
-
-        protected override void Execute(List<TEntity> entities)
-        {
-            foreach (var entity in entities)
-            {
-                if (entity.HasComponent(_componentId))
-                {
-                    _presenter.Present(entity.GetComponent<TComponent>(_componentId), entity.GetComponent<TIdComponent>(_identifierComponentId).Key);
-                }
-                else
-                {
-                    _presenter.StopPresent(entity.GetComponent<TIdComponent>(_identifierComponentId).Key);
-                }
-            }
+            _startPresentComponentSystem.Clear();
+            _stopPresentComponentSystem.Clear();
         }
     }
 }

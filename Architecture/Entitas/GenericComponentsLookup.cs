@@ -25,7 +25,7 @@ namespace Architecture.Entitas
         static GenericComponentsLookup()
         {
             _idDictionary = new Dictionary<Type, int>();
-            var className = (typeof(T)).ToString().Replace(ENTITY, COMPONENTS_LOOKUP);
+            var className = (typeof(T)).AssemblyQualifiedName.Replace(ENTITY, COMPONENTS_LOOKUP);
             var type = Type.GetType(className);
             var flag = BindingFlags.Static | BindingFlags.GetField
                 | BindingFlags.Public;

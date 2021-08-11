@@ -8,8 +8,9 @@ namespace Architecture.Presenting
 
         private readonly List<ContextPresenter<TView, TModel, TKey>> _presenters;
 
-        public ContextPresenter(IEnumerable<ContextPresenter<TView, TModel, TKey>> presenters)
+        public ContextPresenter(IEnumerable<ContextPresenter<TView, TModel, TKey>> presenters, IPresentContext<TView, TKey> context)
         {
+            _context = context;
             _presenters = new List<ContextPresenter<TView, TModel, TKey>>(presenters);
         }
         
