@@ -1,37 +1,111 @@
 ﻿using System;
 using System.Collections.Generic;
+using Entitas;
 
 namespace Architecture.ECS
 {
-    public class MContext
+    public abstract class MContext<T> : MContext where T : MContext<T>
     {
-        private Stack<MEntity> _stack;
-        private int count = Int32.MinValue;
-
-        internal int id;
-        
-        public MEntity CreateEntity()
+        public sealed override int GetComponentId<T1>()
         {
-            return _stack.Count != 0 ? _stack.Pop() : createEntity();
+            return Indexator<T, T1>.ComponentId;
         }
 
-        private MEntity createEntity()
+        public sealed override int ComponentCount()
         {
-            var entity = new MEntity();
-            entity.index = count;
-            count++;
+            return Indexator<T>.ComponentsCount + 1;
+        }
+
+        internal sealed override void ComponentAdded<T1>(MEntity entity, T1 component)
+        {
+        }
+    }
+
+    public abstract class MContext : IDisposable
+    {
+        //ToDo : Create offseted list
+        private int count = 0;
+
+        private Stack<int> _reservedIndexes = new Stack<int>();
+
+        private readonly List<MEntity> _entities = new List<MEntity>();
+
+        private readonly Dictionary<Type, Collector> _collectors = new Dictionary<Type, Collector>();
+
+        public T GetCollector<T>()
+            where T:Collector, new()
+        {
+            if (!_collectors.TryGetValue(typeof(T), out var collector))
+            {
+                collector = new T();
+                _collectors.Add(typeof(T), collector);
+            }
+
+            return collector as T;
+        }
+
+        public void Update()
+        {
+            foreach (var keyValuePair in _collectors)
+            {
+                foreach (var entity in _entities)
+                {
+                    keyValuePair.Value.CheckEntity(entity);
+                }
+            }
+        }
+
+        public void Complete()
+        {
+            foreach (var keyValuePair in _collectors)
+            {
+                keyValuePair.Value.Complete();
+            }
+        }
+
+        public MEntity CreateEntity()
+        {
+            var entity = Pool<MEntity>.Get();
+            entity._context = this;
+            var index = entity.index = GetIndex();
+            if (index >= _entities.Count)
+            {
+                for (int i = 0; i < _entities.Count; i++)
+                {
+                    _entities.Add(null);
+                }
+            }
+
+            _entities[index] = entity;
             return entity;
         }
 
-        public void RetainEntity(MEntity entity)
+        public MEntity GetEntity(int index)
         {
-            _stack.Push(entity);
+            return _entities[index];
         }
 
-        internal void TearDown()
+        private int GetIndex()
         {
-            ContextFabric._activeContexts--;
-            Pool<MContext>.Retain(this);
+            var index = _reservedIndexes.Count > 0 ? _reservedIndexes.Pop() : count;
+            count++;
+            return index;
+        }
+
+        public abstract int GetComponentId<T>();
+
+        public abstract int ComponentCount();
+
+        public void RetainEntity(MEntity entity)
+        {
+            _entities[entity.index] = null;
+            Pool<MEntity>.Retain(entity);
+        }
+
+        internal abstract void ComponentAdded<T>(MEntity entity, T component);
+
+        public void Dispose()
+        {
         }
     }
 }
