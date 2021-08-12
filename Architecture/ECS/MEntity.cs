@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Architecture.Data;
 
 namespace Architecture.ECS
 {
@@ -21,7 +22,8 @@ namespace Architecture.ECS
 
         public bool HasComponent<T>()
         {
-            return true;
+            var componentIndex = _context.GetComponentId<T>();
+            return !ReferenceEquals(_components[componentIndex], null);
         }
 
         public T AddComponent<T>(T component)
@@ -34,6 +36,7 @@ namespace Architecture.ECS
             if (_components[componentIndex] != null)
                 throw new Exception("Component Already Added");
             _components[componentIndex] = component;
+            Context.ComponentAdded<T>(this);
             return component;
         }
 
@@ -42,22 +45,7 @@ namespace Architecture.ECS
         {
             return _components[_context.GetComponentId<T>()] as T;
         }
-
-        public T ReplaceComponent<T>(T component)
-            where T : class, new()
-        {
-            var componentIndex = _context.GetComponentId<T>();
-
-            CheckComponents(componentIndex);
-
-            var oldComponent = (T)_components[componentIndex];
-            if(oldComponent!=null)
-                Pool<T>.Retain(oldComponent);
-
-            _components[componentIndex] = component;
-            return component;
-        }
-
+        
         public void RemoveComponent<T>()
             where T : class, new()
         {
@@ -70,15 +58,17 @@ namespace Architecture.ECS
                 throw new Exception("Entity hasn't component");
             _components[componentIndex] = null;
             Pool<T>.Retain(oldComponent);
+            Context.ComponentRemoved<T>(this);
         }
 
         public void NotifyUpdateComponent<T>()
             where T : class
         {
-            var componentIndex = _context.GetComponentId<T>();
+            var componentIndex = _context.GetComponentId<UpdateComponent<T>>();
             if (_components[componentIndex] == null)
                 CreateComponentOnEntity<UpdateComponent<T>>();
         }
+        
         public int Index => index;
 
         private void CheckComponents(int componentCount)

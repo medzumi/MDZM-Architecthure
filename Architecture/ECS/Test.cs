@@ -20,21 +20,31 @@ namespace Architecture.ECS
 
         private void Awake()
         {
+            var reactiveSystem = new ReactiveSystem<Transform>(_testContext);
             _systems = new Systems(_testContext, new List<IExecuteSystem>()
             {
                 this,
-                new ReactiveSystem<Transform>(_testContext)
+                reactiveSystem
+            }, new List<ICleanupSystem>()
+            {
+                reactiveSystem
             });
             _collector = _testContext.GetCollector<Collector<Transform>>();
-            var entity = _testContext.CreateEntity();
-            entity.AddComponent(transform);
-            entity.CreateComponentOnEntity<ListenerComponent<Transform>>();
-            entity.GetComponent<ListenerComponent<Transform>>().Listeners.Add(this);
+            for (int i = 0; i < 5000; i++)
+            {
+                var entity = _testContext.CreateEntity();
+                var primitive = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                primitive.transform.position = new Vector3(UnityEngine.Random.Range(-3f, 3f),
+                    UnityEngine.Random.Range(-3f, 3f), UnityEngine.Random.Range(-3f, 3f));
+                entity.AddComponent(primitive.transform);
+                if(i < 5000)
+                    entity.CreateComponentOnEntity<ListenerComponent<Transform>>().Listeners.Add(this);
+            }
         }
 
         public void Notify(Transform component)
         {
-           ////// Debug.Log(component.position);
+         //   transform.position = component.position;
         }
 
         private void Update()
