@@ -25,7 +25,7 @@ namespace Architecture.ECS
         }
 
         public T AddComponent<T>(T component)
-            where T : class, new()
+            where T : class
         {
             var componentIndex = _context.GetComponentId<T>();
             
@@ -35,6 +35,12 @@ namespace Architecture.ECS
                 throw new Exception("Component Already Added");
             _components[componentIndex] = component;
             return component;
+        }
+
+        public T GetComponent<T>()
+            where T : class
+        {
+            return _components[_context.GetComponentId<T>()] as T;
         }
 
         public T ReplaceComponent<T>(T component)
@@ -66,10 +72,12 @@ namespace Architecture.ECS
             Pool<T>.Retain(oldComponent);
         }
 
-        public T NotifyUpdateComponent<T>()
-            where T : class, new()
+        public void NotifyUpdateComponent<T>()
+            where T : class
         {
-            return default;
+            var componentIndex = _context.GetComponentId<T>();
+            if (_components[componentIndex] == null)
+                CreateComponentOnEntity<UpdateComponent<T>>();
         }
         public int Index => index;
 
@@ -77,7 +85,7 @@ namespace Architecture.ECS
         {
             if (_components.Count <= componentCount)
             {
-                for(int i = 0; i < _components.Count - componentCount; i++)
+                for(int i = _components.Count; i <= componentCount; i++)
                     _components.Add(null);
             }
         }

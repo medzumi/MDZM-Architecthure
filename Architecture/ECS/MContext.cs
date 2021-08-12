@@ -18,6 +18,7 @@ namespace Architecture.ECS
 
         internal sealed override void ComponentAdded<T1>(MEntity entity, T1 component)
         {
+            
         }
     }
 
@@ -44,7 +45,7 @@ namespace Architecture.ECS
             return collector as T;
         }
 
-        public void Update()
+        internal void Update()
         {
             foreach (var keyValuePair in _collectors)
             {
@@ -55,7 +56,7 @@ namespace Architecture.ECS
             }
         }
 
-        public void Complete()
+        internal void Complete()
         {
             foreach (var keyValuePair in _collectors)
             {
@@ -70,7 +71,7 @@ namespace Architecture.ECS
             var index = entity.index = GetIndex();
             if (index >= _entities.Count)
             {
-                for (int i = 0; i < _entities.Count; i++)
+                for (int i = _entities.Count; i <= index; i++)
                 {
                     _entities.Add(null);
                 }
