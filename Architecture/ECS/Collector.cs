@@ -154,27 +154,27 @@ namespace Architecture.ECS
         }
     }
 
-    public class CollectorUpdated<T1> : Collector<UpdateComponent<T1>>
+    public class CollectorUpdated<T1> : Collector<UpdateSingleComponent<T1>>
     {
     }
 
-    public class CollectorAllUpdated<T1, T2> : CollectorAll<UpdateComponent<T1>, UpdateComponent<T2>>
+    public class CollectorAllUpdated<T1, T2> : CollectorAll<UpdateSingleComponent<T1>, UpdateSingleComponent<T2>>
     {
     }
 
     public class
-        CollectorAllUpdated<T1, T2, T3> : CollectorAll<UpdateComponent<T1>, UpdateComponent<T2>, UpdateComponent<T3>>
+        CollectorAllUpdated<T1, T2, T3> : CollectorAll<UpdateSingleComponent<T1>, UpdateSingleComponent<T2>, UpdateSingleComponent<T3>>
     {
         
     }
 
-    public class CollectorAnyUpdated<T1, T2> : CollectorAny<UpdateComponent<T1>, UpdateComponent<T2>>
+    public class CollectorAnyUpdated<T1, T2> : CollectorAny<UpdateSingleComponent<T1>, UpdateSingleComponent<T2>>
     {
         
     }
 
     public class
-        CollectorAnyUpdated<T1, T2, T3> : CollectorAny<UpdateComponent<T1>, UpdateComponent<T2>, UpdateComponent<T3>>
+        CollectorAnyUpdated<T1, T2, T3> : CollectorAny<UpdateSingleComponent<T1>, UpdateSingleComponent<T2>, UpdateSingleComponent<T3>>
     {
         
     }

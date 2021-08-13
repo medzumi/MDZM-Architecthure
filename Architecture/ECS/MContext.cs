@@ -21,24 +21,22 @@ namespace Architecture.ECS
             return Indexator<T>.ComponentsCount + 1;
         }
 
-        internal sealed override void ComponentAdded<T1>(MEntity entity)
+        internal sealed override void ComponentAdded(MEntity entity, int componentIndex)
         {
-            var index = Indexator<T, T1>.ComponentId;
-            if (index < _collectrors.Count)
+            if (componentIndex < _collectrors.Count)
             {
-                foreach (var collector in _collectrors[index])
+                foreach (var collector in _collectrors[componentIndex])
                 {
                     collector.CheckAdded(entity);
                 }
             }
         }
 
-        internal sealed override void ComponentRemoved<T1>(MEntity entity)
+        internal sealed override void ComponentRemoved(MEntity entity, int componentIndex)
         {
-            var index = Indexator<T, T1>.ComponentId;
-            if (index < _collectrors.Count)
+            if (componentIndex < _collectrors.Count)
             {
-                foreach (var collector in _collectrors[index])
+                foreach (var collector in _collectrors[componentIndex])
                 {
                     collector.CheckRemove(entity);
                 }
@@ -132,9 +130,9 @@ namespace Architecture.ECS
             Pool<MEntity>.Retain(entity);
         }
 
-        internal abstract void ComponentAdded<T>(MEntity entity);
+        internal abstract void ComponentAdded(MEntity entity, int componentIndex);
 
-        internal abstract void ComponentRemoved<T>(MEntity entity);
+        internal abstract void ComponentRemoved(MEntity entity, int componentIndex);
 
         public void Dispose()
         {
