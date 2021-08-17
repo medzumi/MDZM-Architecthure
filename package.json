@@ -2,6 +2,7 @@
   "name": "com.mdzm.architecture",
   "version": "1.0.0",
   "dependencies": {
+    "com.medzumi.meduzaecs" : "0.1.0",
     "com.cysharp.unitask": "1.0.0",
     "com.svermeulen.extenject" : "1.0.0"
   }
