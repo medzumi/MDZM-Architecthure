@@ -163,6 +163,11 @@ namespace Architecture.ViewModel
             _commands[key].AddCommand(command);
         }
 
+        public void RemoveCommand(string key, ICommand command)
+        {
+            _commands[key].RemoveCommand(command);
+        }
+
         public ICommand GetCommand(string key)
         {
             return _commands[key];
