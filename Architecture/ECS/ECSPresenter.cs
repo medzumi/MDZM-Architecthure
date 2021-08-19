@@ -4,7 +4,7 @@ using MedzuzaECS.ECS;
 
 namespace Architecture.ECS
 {
-    public class ECSPresenter<TView, T> : ContextPresenter<TView, Entity, int>
+    public class ECSPresenter<TView, T> : ContextPresenter<TView, Entity>
         where T : ECSPresenter<TView, T>.PresenterInstruction, new()
     {
         public abstract class PresenterInstruction
@@ -19,7 +19,7 @@ namespace Architecture.ECS
         
         
         
-        public ECSPresenter(IPresentContext<TView, int> context) : base(context)
+        public ECSPresenter(IPresentContext<TView> context) : base(context)
         {
         }
 

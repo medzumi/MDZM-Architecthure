@@ -5,15 +5,14 @@ using Object = UnityEngine.Object;
 
 namespace Architecture.Presenting
 {
-    [Serializable]
-    public class PresentContextScriptableObject<TView, TKey> : IPresentContext<TView, TKey>
-        where TView : Object
+    [CreateAssetMenu]
+    public class PresentContextScriptableObject : ScriptableObject, IPresentContext<ViewModel.ViewModel>
     {
-        [SerializeField] private TView _prefab;
+        [SerializeField] private ViewModel.ViewModel _prefab;
 
-        private Dictionary<TKey, TView> _dictionary = new Dictionary<TKey, TView>();
+        private Dictionary<int, ViewModel.ViewModel> _dictionary = new Dictionary<int, ViewModel.ViewModel>();
         
-        public TView Get(TKey key)
+        public ViewModel.ViewModel Get(int key)
         {
             if (!_dictionary.TryGetValue(key, out var pref))
             {
@@ -31,8 +30,13 @@ namespace Architecture.Presenting
 
             return pref;
         }
+        
+        public void ReserveView(ViewModel.ViewModel view, int key)
+        {
+            _dictionary.Add(key, view);
+        }
 
-        public void Destroy(TKey key)
+        public void Destroy(int key)
         {
             var pref = _dictionary[key];
             Object.Destroy(pref);

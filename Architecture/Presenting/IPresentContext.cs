@@ -1,9 +1,9 @@
 ﻿namespace Architecture.Presenting
 {
-    public interface IPresentContext<TValue, TKey>
+    public interface IPresentContext<TValue>
     {
-        TValue Get(TKey key);
+        TValue Get(int key);
 
-        void Destroy(TKey key);
+        void Destroy(int key);
     }
 }

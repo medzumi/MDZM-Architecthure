@@ -28,11 +28,11 @@ namespace Architecture.Presenting
         public abstract void Deactivate();
     }
 
-    public interface IPresenter<T, TKey>
+    public interface IPresenter<T>
     {
-        void Present(T model, TKey key);
+        void Present(T model, int key);
 
-        void StopPresent(T model, TKey key);
+        void StopPresent(T model, int key);
     }
     
     public abstract class AbstractPresenter<T, TKey> : AbstractPresenter<TKey>
