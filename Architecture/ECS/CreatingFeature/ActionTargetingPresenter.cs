@@ -5,7 +5,7 @@ namespace Architecture.ECS.CreatingFeature
 {
     public class ActionTargetingPresenter<T> : ECSPresenter<ButtonTargetPresenter, ActionTargetingPresenter<T>.Instruction>
     {
-        public class Instruction : PresenterInstruction
+        public class Instruction : PresenterInstruction<ButtonTargetPresenter>
         {
             private Entity _entity;
             public override void Present(Entity entity, ButtonTargetPresenter view)

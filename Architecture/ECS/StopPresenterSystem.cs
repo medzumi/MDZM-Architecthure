@@ -4,7 +4,14 @@ using ECS.Collectors;
 
 namespace Architecture.ECS
 {
-    public class StopPresenterSystem<T> : UpdateSystem
+    public abstract class StopPresenterSystem : UpdateSystem
+    {
+        protected StopPresenterSystem(Context context) : base(context)
+        {
+        }
+    }
+    
+    public class StopPresenterSystem<T> : StopPresenterSystem
         where T : ICondition, new()
     {
         private readonly IPresenter<Entity> _presenter;

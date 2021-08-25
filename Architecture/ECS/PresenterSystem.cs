@@ -4,7 +4,14 @@ using ECS.Collectors;
 
 namespace Architecture.ECS
 {
-    public class PresenterSystem<T> : UpdateSystem
+    public abstract class PresenterSystem : UpdateSystem
+    {
+        protected PresenterSystem(Context context) : base(context)
+        {
+        }
+    }
+    
+    public class PresenterSystem<T> : PresenterSystem
         where T : ICondition, new()
     {
         private readonly IPresenter<Entity> _presenter;
@@ -29,7 +36,7 @@ namespace Architecture.ECS
         }
     }
     
-    public class PresenterSystem<T1, T2> : UpdateSystem
+    public class PresenterSystem<T1, T2> : PresenterSystem
         where T1 : ICondition, new()
         where T2 : ICondition, new()
     {
@@ -55,7 +62,7 @@ namespace Architecture.ECS
         }
     }
     
-    public class PresenterSystem<T1, T2, T3> : UpdateSystem
+    public class PresenterSystem<T1, T2, T3> : PresenterSystem
         where T1 : ICondition, new()
         where T2 : ICondition, new()
         where T3 : ICondition, new()

@@ -4,16 +4,16 @@ using ECS;
 
 namespace Architecture.ECS
 {
-    public class ECSPresenter<TView, T> : ContextPresenter<TView, Entity>
-        where T : ECSPresenter<TView, T>.PresenterInstruction, new()
+    public abstract class PresenterInstruction<TView>
     {
-        public abstract class PresenterInstruction
-        {
-            public abstract void Present(Entity entity, TView view);
+        public abstract void Present(Entity entity, TView view);
 
-            public abstract void StopPresent(Entity entity, TView view);
-        }
-
+        public abstract void StopPresent(Entity entity, TView view);
+    }
+    
+    public class ECSPresenter<TView, T> : ContextPresenter<TView, Entity>
+        where T : PresenterInstruction<TView>, new()
+    {
         private Dictionary<int, T> _presenterInstructions =
             new Dictionary<int, T>();
         

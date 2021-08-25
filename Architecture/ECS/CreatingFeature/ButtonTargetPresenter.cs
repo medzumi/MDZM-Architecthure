@@ -9,7 +9,7 @@ namespace Architecture.ECS.CreatingFeature
     {
         public event Action<Entity> ClickedEntity = delegate(Entity entity) {  };
         
-        public class Instruction : PresenterInstruction, ICommand
+        public class Instruction : PresenterInstruction<ViewModel.ViewModel>, ICommand
         {
             public ButtonTargetPresenter buttonTargetPresenter;
             private Entity _entity;
