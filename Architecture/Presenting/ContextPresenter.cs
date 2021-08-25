@@ -28,10 +28,6 @@ namespace Architecture.Presenting
         protected void StopPresentHandler(TModel model, int key)
         {
             StopPresentHandler(model, _context.Get(key), key);
-        }
-
-        protected void DestroyView(int key)
-        {
             _context.Destroy(key);
         }
 

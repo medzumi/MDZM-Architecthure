@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using Architecture.Presenting;
-using MedzuzaECS.ECS;
+using ECS;
 
 namespace Architecture.ECS
 {
@@ -26,8 +26,14 @@ namespace Architecture.ECS
         protected override void PresentHandler(Entity model, TView view, int key)
         {
             var presenter = Pool<T>.Get();
+            InjectInstruction(presenter);
             presenter.Present(model, view);
             _presenterInstructions.Add(key, presenter);
+        }
+
+        protected virtual void InjectInstruction(T instruction)
+        {
+            
         }
 
         protected override void StopPresentHandler(Entity model, TView view, int key)

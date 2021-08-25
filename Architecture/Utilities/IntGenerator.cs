@@ -4,7 +4,7 @@ namespace Architecture.Utilities
 {
     public class IntGenerator
     {
-        private const int maxWeight = Int32.MaxValue / 2;
+        private const int maxWeight = Int32.MaxValue/2;
         private readonly int[] _biteWeights = new int[32];
 
         private Random _random;
@@ -18,14 +18,16 @@ namespace Architecture.Utilities
         {
             int multiplier = 1;
             int result = 0;
-            for (int i = 0; i < 32; i++)
+            var weight = maxWeight;
+            for (int i = 0; i < 31; i++)
             {
-                if (_random.Next(0, maxWeight) < _biteWeights[i])
+                if (_random.Next(0, weight) > _biteWeights[i])
                 {
-                    _biteWeights[i]++;
+                    _biteWeights[i]+=(_biteWeights[i]*2 +1);
                     result += multiplier;
+                    weight -= multiplier*2;
                 }
-
+                
                 multiplier *= 2;
             }
 
