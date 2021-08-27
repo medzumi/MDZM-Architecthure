@@ -4,6 +4,7 @@ using System.Linq;
 using Architecture.ECS;
 using Architecture.ECS.CreatingFeature;
 using ECS;
+using ECS.Collectors;
 using ModestTree;
 using UnityEditor;
 using UnityEngine;
@@ -14,11 +15,33 @@ namespace Architecture.TypeProperty.Editor
     [CustomPropertyDrawer(typeof(InheritsAttribute))]
     public class TypeReferenceDrawer : PropertyDrawer
     {
+        private List<Type[]> _types = new List<Type[]>();
+        private List<List<List<Type>>> _currentConstraints = new List<List<List<Type>>>();
+
+        private static List<List<Type>> _constaints
+        {
+            get => _test;
+            set
+            {
+                _test = value;
+            }
+        }
+        private static List<List<Type>> _test; 
+        private static int _counter = 0;
+        private static List<List<Type>> _startConstraint = new List<List<Type>>() {new List<Type>(){null}};
+        private List<string[]> _names = new List<string[]>();
+        
         private const float _customHeight = 20f;
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
-            return GetRecursivePropertyHeight(property);
+            var parameters = property.FindPropertyRelative("_parametersName");
+            var height = 0f;
+            for (int i = 0; i < parameters.arraySize; i++)
+            {
+                height += EditorGUI.GetPropertyHeight(parameters.GetArrayElementAtIndex(i));
+            }
+            return _customHeight + height;
         }
 
         private float GetRecursivePropertyHeight(SerializedProperty property)
@@ -33,43 +56,62 @@ namespace Architecture.TypeProperty.Editor
             return height;
         }
 
-        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        public override bool CanCacheInspectorGUI(SerializedProperty property)
         {
-            var attr = attribute as InheritsAttribute;
-            DrawRecusive(position, property, label.text, new []{ attr != null ? attr.Type : typeof(object) });
-
-            //     if (index >= 0)
-            //     {
-            //         nameProperty.stringValue = attr.TypeNames[index];
-            //         type = attr.AvailableTypes[index];
-            //         if (type.IsGenericTypeDefinition)
-            //         {
-            //             var size = type.GetGenericArguments().Length;
-            //             if (size != listProperty.arraySize)
-            //             {
-            //                 for (int i = listProperty.arraySize; i < size; i++)
-            //                     listProperty.InsertArrayElementAtIndex(i - 1);
-            //                 for (int i = listProperty.arraySize; i > size; i--)
-            //                 {
-            //                     listProperty.DeleteArrayElementAtIndex(i - 1);
-            //                 }
-            //             }
-            //
-            //             DrawGenericParameters(position, listProperty, type);
-            //         }
-            //     }
-            // }
+            return true;
         }
 
-        private void DrawRecusive(Rect position, SerializedProperty property, string label, IEnumerable<Type> inheritTypes, bool availableAbstract = true)
+        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        {
+            var attr = attribute as InheritsAttribute; 
+            if (_constaints == null)
+            {
+                
+                _startConstraint[0][0] = attr != null ? attr.Type : typeof(object);
+                _constaints = _startConstraint;
+            }
+            DrawRecusive(position, property, label.text);
+        }
+
+        private void DrawRecusive(Rect position, SerializedProperty property, string label,
+            bool availableAbstract = true)
         {
             var listProperty = property.FindPropertyRelative("_parametersName");
             var nameProperty = property.FindPropertyRelative("name");
-            var availableTypes = AppDomain.CurrentDomain.GetAssemblies().SelectMany(ass => ass.GetTypes())
+            if (_types.Count != _constaints.Count)
+            {
+                for (int i = _types.Count; i < _constaints.Count; i++)
+                {
+                    _types.Add(null);
+                }
+                for (int i = _types.Count; i > _constaints.Count; i--)
+                {
+                    _types.RemoveAt(i - 1);
+                }
+                for (int i = _names.Count; i < _constaints.Count; i++)
+                {
+                    _names.Add(null);
+                }
+                for (int i = _names.Count; i > _constaints.Count; i--)
+                {
+                    _names.RemoveAt(i - 1);
+                }
+                for (int i = _currentConstraints.Count; i < _constaints.Count; i++)
+                {
+                    _currentConstraints.Add(null);
+                }
+                for (int i = _currentConstraints.Count; i > _constaints.Count; i--)
+                {
+                    _currentConstraints.RemoveAt(i - 1);
+                }
+            }
+            if (_types.Count > 0 && _types[_counter] == null)
+            {
+                _types[_counter] = AppDomain.CurrentDomain.GetAssemblies().SelectMany(ass => ass.GetTypes())
                     .Where(t =>
                     {
-                        var result = availableAbstract || !t.IsAbstract;
-                        foreach (var VARIABLE in inheritTypes)
+                        var result = (availableAbstract || !t.IsAbstract);
+                        foreach (var VARIABLE in _constaints[_counter])
                         {
                             if (VARIABLE.IsGenericTypeDefinition)
                             {
@@ -84,18 +126,15 @@ namespace Architecture.TypeProperty.Editor
                                             break;
                                         }
                                     }
+
                                     t = t.BaseType;
                                 }
 
-                                if(!(result &= subResult))
+                                if (!(result &= subResult))
                                     break;
                             }
                             else
                             {
-                                if (VARIABLE == typeof(PresenterSystem) && t == typeof(PresenterSystem<,,>))
-                                {
-                                    
-                                }
                                 if (!VARIABLE.IsAssignableFrom(t))
                                 {
                                     var subResult = false;
@@ -109,12 +148,13 @@ namespace Architecture.TypeProperty.Editor
 
                                         t = t.BaseType;
                                     }
-                                    if(!(result &= subResult))
+
+                                    if (!(result &= subResult))
                                         break;
                                 }
                                 else
                                 {
-                                    if(!(result &= true))
+                                    if (!(result &= true))
                                         break;
                                 }
                             }
@@ -124,59 +164,109 @@ namespace Architecture.TypeProperty.Editor
                     })
                     .ToArray();
 
-            
-            var drawNames = availableTypes.Select(t =>
-                    $"{(string.IsNullOrWhiteSpace(t.Namespace) ? "DEFAULT" : t.Namespace).Replace('.', '/')}/{t.Name}")
-                .ToArray();
-                
-            var index = availableTypes.IndexOf(Type.GetType(nameProperty.stringValue));
-            index = EditorGUI.Popup(
-                new Rect(position.x, position.y, position.width, _customHeight), label, index,
-                drawNames);
-
-            if (index > -1)
-            {
-                nameProperty.stringValue = availableTypes[index].AssemblyQualifiedName;
-                var arguments = availableTypes[index].GetGenericArguments();
-                if (arguments.Length != listProperty.arraySize)
+                _names[_counter] = _types[_counter].Select(t =>
+                        $"{(string.IsNullOrWhiteSpace(t.Namespace) ? "DEFAULT" : t.Namespace).Replace('.', '/')}/{t.Name}")
+                    .ToArray();
+                var oldIndex = _types[_counter].IndexOf(Type.GetType(nameProperty.stringValue));
+                _currentConstraints[_counter] = new List<List<Type>>();
+                if (oldIndex > -1)
                 {
-                    for (int i = listProperty.arraySize; i < arguments.Length; i++)
+                    foreach (var genericArgument in _types[_counter][oldIndex].GetGenericArguments())
+                    {
+                        var list = new List<Type>();
+                        _currentConstraints[_counter].Add(list);
+                        foreach (var constraint in genericArgument.GetGenericParameterConstraints())
+                        {
+                            if (constraint.IsGenericType)
+                            {
+                                list.Add(constraint.GetGenericTypeDefinition());
+                            }
+                            else
+                            {
+                                list.Add(constraint);
+                            }
+                        }
+                    }
+                }
+
+                for (int i = listProperty.arraySize; i < _currentConstraints[_counter].Count; i++) 
+                {
+                    listProperty.InsertArrayElementAtIndex(i - 1);
+                }
+
+                for (int i = listProperty.arraySize; i > _currentConstraints[_counter].Count; i--)
+                {
+                    listProperty.DeleteArrayElementAtIndex(i - 1); 
+                }
+            }
+
+            var index = _types[_counter].IndexOf(Type.GetType(nameProperty.stringValue));
+            var newIndex = EditorGUI.Popup(
+                new Rect(position.x, position.y, position.width, _customHeight), label, index, _names[_counter]);
+            
+            if (index != newIndex)
+            {
+                if (newIndex > -1)
+                {
+                    nameProperty.stringValue = _types[_counter][newIndex].AssemblyQualifiedName;
+                    _currentConstraints[_counter].Clear();
+                    foreach (var genericArgument in _types[_counter][newIndex].GetGenericArguments())
+                    {
+                        var list = new List<Type>();
+                        _currentConstraints[_counter].Add(list);
+                        foreach (var constraint in genericArgument.GetGenericParameterConstraints())
+                        {
+                            if (constraint.IsGenericType)
+                            {
+                                list.Add(constraint.GetGenericTypeDefinition());
+                            }
+                            else
+                            {
+                                list.Add(constraint);
+                            }
+                        }
+                    }
+
+                    for (int i = listProperty.arraySize; i < _currentConstraints[_counter].Count; i++)
                     {
                         listProperty.InsertArrayElementAtIndex(i);
                     }
-                    for(int i = listProperty.arraySize; i > arguments.Length; i--)
+
+                    for (int i = listProperty.arraySize; i > _currentConstraints[_counter].Count; i--)
                     {
                         listProperty.DeleteArrayElementAtIndex(i - 1);
                     }
                 }
                 else
                 {
-                    var offset = position.width * 0.1f;
-                    var currentHeight = position.y + _customHeight;
-                    for (int i = 0; i < listProperty.arraySize; i++)
+                    nameProperty.stringValue = string.Empty;
+                    for (int i = listProperty.arraySize - 1; i >= 0; i--)
                     {
-                        var elementProperty = listProperty.GetArrayElementAtIndex(i);
-                        var height = GetRecursivePropertyHeight(elementProperty);
-                        var constrainst = arguments[i].GetGenericParameterConstraints().Select(t =>
-                        {
-                            if (t.IsGenericType)
-                            {
-                                return t.GetGenericTypeDefinition();
-                            }
-                            else
-                            {
-                                return t;
-                            }
-                        }).ToArray();
-                        DrawRecusive(new Rect(position.x + offset, currentHeight, position.width - offset, height), elementProperty, arguments[i].Name, constrainst);
-                        currentHeight += height;
+                        listProperty.DeleteArrayElementAtIndex(i);
                     }
+
+                    _currentConstraints[_counter].Clear(); 
                 }
             }
-            else
+
+            var offset = position.width * 0.1f;
+            var currentHeight = position.y + _customHeight;
+            var previousCount = _counter;
+            _counter = 0;
+            for (int i = 0; i < listProperty.arraySize; i++)
             {
-                nameProperty.stringValue = string.Empty;
+                var elementProperty = listProperty.GetArrayElementAtIndex(i);
+                var height = GetPropertyHeight(elementProperty.Copy(), GUIContent.none);
+                _constaints = _currentConstraints[previousCount];  
+                EditorGUI.PropertyField(new Rect(position.x + offset, currentHeight, position.width - offset, height),
+                    elementProperty, GUIContent.none, true);
+                _counter++;
+                _startConstraint[0][0] = typeof(object);
+                _constaints = null;
+                currentHeight += height;
             }
+
+            _counter = previousCount;
         }
     }
 }
