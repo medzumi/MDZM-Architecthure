@@ -9,6 +9,8 @@ namespace Architecture.ViewModel.View.Single
     {
         [SerializeField] private BindProperty<string> _stringReactive;
 
+        protected BindProperty<string> stringReactive => _stringReactive;
+
         private void Awake()
         {
             _stringReactive.GetBind().Subscribe(this, this.GetCancellationTokenOnDestroy());

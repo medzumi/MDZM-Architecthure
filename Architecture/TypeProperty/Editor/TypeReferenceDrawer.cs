@@ -64,13 +64,14 @@ namespace Architecture.TypeProperty.Editor
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             var attr = attribute as InheritsAttribute; 
-            if (_constaints == null)
+            if (_constaints == null || _constaints.Count == 0)
             {
                 
                 _startConstraint[0][0] = attr != null ? attr.Type : typeof(object);
                 _constaints = _startConstraint;
             }
             DrawRecusive(position, property, label.text);
+            _constaints = null;
         }
 
         private void DrawRecusive(Rect position, SerializedProperty property, string label,
