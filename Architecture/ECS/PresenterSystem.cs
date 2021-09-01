@@ -88,4 +88,32 @@ namespace Architecture.ECS
             _presenter.Present(entity, entity.Index);
         }
     }
+    
+    public class PresenterSystem<T1, T2, T3, T4> : PresenterSystem
+        where T1 : ICondition, new()
+        where T2 : ICondition, new()
+        where T3 : ICondition, new()
+        where T4 : ICondition, new()
+    {
+        private readonly IPresenter<Entity> _presenter;
+        
+        public PresenterSystem(Context context, IPresenter<Entity> presenter) : base(context)
+        {
+            _presenter = presenter;
+        }
+
+        protected override ICollector CreateCollector(Context context)
+        {
+            foreach (var VARIABLE in context.GetCollector<CollectorAll<T1, T2, T3, T4>>().collectedEntities)
+            {
+                _presenter.Present(VARIABLE, VARIABLE.Index);
+            }
+            return context.GetCollector<ReactiveCollector<T1, T2, T3, T4>>();
+        }
+
+        protected override void Execute(Entity entity)
+        {
+            _presenter.Present(entity, entity.Index);
+        }
+    }
 }
